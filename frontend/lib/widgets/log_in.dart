@@ -19,7 +19,7 @@ class _LogInState extends ConsumerState<LogIn> {
   @override
   Widget build(BuildContext context) {
 
-    final isObscured = ref.watch(obscureProvider);
+    final isObscured = ref.watch(obsureProvider);
     final errorMessage=ref.watch(authErrorProvider);
 
 
@@ -36,7 +36,7 @@ class _LogInState extends ConsumerState<LogIn> {
       (route) => false, // This removes all previous routes
     );
       }else{
-        ref.read(authErrorProvider.notifier).state="Invalid UserName/Password";
+        ref.read(authErrorProvider.notifier).setError("Invalid UserName/Password");
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text("Invalid UserName / Password"))
         );
@@ -71,9 +71,10 @@ class _LogInState extends ConsumerState<LogIn> {
           const SizedBox(height: 30,),
           buildTextField("Email", Icons.email,controller:emailController,errorText: errorMessage),
           const SizedBox(height: 16),
-          buildTextField("Password",Icons.lock,controller:passwordController,errorText: errorMessage, isObscure: isObscured,onToggle: () {
-              ref.read(obscureProvider.notifier).state = !isObscured;
-              },),
+          buildTextField("Password",Icons.lock,controller:passwordController,errorText: errorMessage, isObscure: isObscured,  onToggle: () {
+    // Call the toggle method we defined in the Notifier
+    ref.read(obsureProvider.notifier).onToggle();
+  },),
           const SizedBox(height: 24),
           ElevatedButton(
             style: ElevatedButton.styleFrom(

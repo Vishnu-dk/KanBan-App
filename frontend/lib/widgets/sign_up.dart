@@ -19,7 +19,7 @@ class _SignUpState extends ConsumerState<SignUp> {
   Widget build(BuildContext context) {
 
 
-    final isObscured = ref.watch(obscureProvider);
+    final isObscured = ref.watch(obsureProvider);
 
     void handleSignUp()async{
       String success=await AuthService().signUp(emailController.text,passwordController.text);
@@ -63,7 +63,7 @@ class _SignUpState extends ConsumerState<SignUp> {
           buildTextField("Email", Icons.email,controller:emailController),
           const SizedBox(height: 16),
           buildTextField("Password",Icons.lock,controller: passwordController, isObscure: isObscured,onToggle: () {
-                ref.read(obscureProvider.notifier).state=!isObscured;
+                    ref.read(obsureProvider.notifier).onToggle();
               },),
           const SizedBox(height: 24),
           ElevatedButton(
