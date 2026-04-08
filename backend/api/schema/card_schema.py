@@ -13,5 +13,6 @@ class CardUpdate(BaseModel):
     title: Optional[str] = None
     due_date: Optional[FutureDate] = None
     description:Optional[str] = Field(None, max_length=1000)
+    column_id:Optional[str]
 
 

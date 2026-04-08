@@ -76,8 +76,12 @@ class KanbanView extends ConsumerWidget {
                         
                           crossAxisAlignment: CrossAxisAlignment.stretch, 
                           children: [
-                            ...currentBoard.columnNames.map((col) => KanbanViewWidget().buildKanbanColumn(context, ref, col,board)),
-                          ],
+                              ...currentBoard.columnNames.map((col) {
+    return SizedBox(
+      width: 296, // Match the width inside buildKanbanColumn
+      child: KanbanViewWidget().buildKanbanColumn(context, ref, col, board),
+    );
+  }),                          ],
                         ),
                       ),
                     ),

@@ -61,46 +61,61 @@ def delete_card_details(card_id: str, db: Session = Depends(get_db), current_use
         db.rollback()
         raise HTTPException(status_code=500, detail=str(e))
 
-    
-
 @router.patch("/cards/{card_id}")
-def edit_card_details(card_id:str, card_update:CardUpdate, db:Session=Depends(get_db),current_user:UserCurrent=Depends(get_user)):
+def edit_card_details(card_id: str, card_update: CardUpdate, db: Session = Depends(get_db)):
     try:
-            current_card=db.query(Card).filter(card_id==Card.id).first()
-            existing_card=db.query(Card).filter(card_update.title==Card.title,card_update.position!=Card.position).first()
+        current_card = db.query(Card).filter(Card.id == card_id).first()
+        if not current_card:
+            raise HTTPException(status_code=404, detail="Card not found")
 
-            if not current_card:
-                raise HTTPException(status_code=404,detail="Column not Found")
-            if card_update.title is not None and card_update.title!=current_card.title:
-                if existing_card:
-                    raise HTTPException(status_code=402,detail="Column title is already in use")
-                current_card.title=card_update.title
-            if card_update.due_date is not None:
-                current_card.due_date=card_update.due_date
-            if card_update.description is not None:
-                current_card.description=card_update.description
-            if card_update.position is not None:
-                new_position = card_update.position
-                col_id = current_card.column_id
-                other_cards = db.query(Card).filter(
-                    Card.column_id == col_id, 
-                    Card.id != current_card.id
-                ).order_by(Card.position.asc()).all()
+        if card_update.title:
+            current_card.title = card_update.title
+        if card_update.description is not None:
+            current_card.description = card_update.description
+        if card_update.due_date:
+            current_card.due_date = card_update.due_date
 
-                other_cards.insert(new_position, current_card)
+        old_column_id = current_card.column_id
+        old_position = current_card.position
+        new_column_id = card_update.column_id or old_column_id
+        new_position = card_update.position if card_update.position is not None else old_position
 
-                for index, col in enumerate(other_cards):
-                    col.position = index
+        if old_column_id != new_column_id or old_position != new_position:
+
+            if old_column_id != new_column_id:
+                db.query(Card).filter(
+                    Card.column_id == old_column_id,
+                    Card.position > old_position
+                ).update({Card.position: Card.position - 1})
 
 
-            db.commit()
-            db.refresh(current_card)
+                db.query(Card).filter(
+                    Card.column_id == new_column_id,
+                    Card.position >= new_position
+                ).update({Card.position: Card.position + 1})
 
-            return current_card
+                current_card.column_id = new_column_id
+            
+            else:
+                if new_position > old_position:
+                    db.query(Card).filter(
+                        Card.column_id == old_column_id,
+                        Card.position > old_position,
+                        Card.position <= new_position
+                    ).update({Card.position: Card.position - 1})
+                elif new_position < old_position:
+                    db.query(Card).filter(
+                        Card.column_id == old_column_id,
+                        Card.position >= new_position,
+                        Card.position < old_position
+                    ).update({Card.position: Card.position + 1})
 
+            current_card.position = new_position
 
-    except HTTPException:
-        raise
-    except Exception as e :
+        db.commit()
+        db.refresh(current_card)
+        return current_card
+
+    except Exception as e:
         db.rollback()
-        raise HTTPException(status_code=500,detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e))

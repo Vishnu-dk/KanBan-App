@@ -19,7 +19,7 @@ class CardService {
   }
 
 
-  Future<void> updateCard(String id, {String? title, String? description, String? dueDate}) async {
+  Future<void> updateCard(String id, {int?position,String? title, String? description, String? dueDate,String?columnId}) async {
     final headers = await _headers();
     headers['Content-Type'] = 'application/json';
 
@@ -28,6 +28,8 @@ class CardService {
                                   if (title != null) "title": title,
                                   if (description != null) "description": description,
                                   if (dueDate != null) "due_date": dueDate, 
+                                  if (position != null) "position": position, 
+                                  if (columnId != null) "column_id": columnId, 
                                 }),
     );
   }

@@ -61,9 +61,15 @@ class Kanban extends _$Kanban {
     await refreshBoard();
   }
 
-  Future<void> updateTask({required String taskId, String? title, String? description, String? dueDate}) async {
+  Future<void> updateTask(KanbanCard task,{required String taskId, String? title,int?position, String? description, String? dueDate,String? columnId}) async {
     state = await AsyncValue.guard(() async {
-      await _cardService.updateCard(taskId, title: title, description: description, dueDate: dueDate);
+      await _cardService.updateCard(taskId, title: title, description: description, dueDate: dueDate,position:position,columnId: columnId);
+      return _fetchBoardData(initialBoard);
+    });
+  }
+  Future<void> moveTask(KanbanCard task, {required int newPosition,required String toColumnId,}) async {
+    state = await AsyncValue.guard(() async {
+      await _cardService.updateCard(task.id, position: newPosition,columnId: toColumnId,);
       return _fetchBoardData(initialBoard);
     });
   }

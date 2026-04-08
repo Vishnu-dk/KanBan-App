@@ -12,7 +12,8 @@ class KanbanViewWidget {
   
   Widget buildKanbanColumn(BuildContext context, WidgetRef ref, KanbanColumn column,Board board) {
     return Container(
-      width: 280,
+    key: ValueKey(column.id), 
+    width: 280,
       margin: const EdgeInsets.only(right: 16),
       decoration: BoxDecoration(
         color: softSage.withValues(alpha: 0.15),  
@@ -45,14 +46,65 @@ class KanbanViewWidget {
               ],
             ),
           ),
-    
           Expanded(
-            child: ListView(
-              padding: const EdgeInsets.symmetric(horizontal: 12),
-              children: column.tasks.map((task) => taskCard(context,ref,board,task)).toList(),
+            child: DragTarget<KanbanCard>(
+              onAcceptWithDetails: (details) {
+                ref.read(kanbanProvider(board).notifier).moveTask(details.data,newPosition: column.tasks.length,toColumnId: column.id,);
+              },
+
+            builder: (context, candidateData, _) {
+              return Container(
+                decoration: BoxDecoration(
+                    color: candidateData.isNotEmpty ? Colors.black.withValues(alpha:0.05) : Colors.transparent,
+                    borderRadius: BorderRadius.circular(20),
+                    ),
+                child: ListView.builder(
+                   padding: const EdgeInsets.symmetric(horizontal: 12),
+                   itemCount: column.tasks.length + 1,
+                   itemBuilder: (context, index) {
+                     if (index == column.tasks.length) {
+                       return _buildDropZone(index, column, board, ref);
+                     }
+
+                     final task = column.tasks[index];
+
+                     return DragTarget<KanbanCard>(
+                       onAcceptWithDetails: (details) {
+                         if (details.data.id == task.id) return;
+
+                         ref.read(kanbanProvider(board).notifier).moveTask(
+                               details.data,
+                               newPosition: index,
+                               toColumnId: column.id,
+                             );
+                       },
+                       builder: (context, candidateData, _) {
+                         return Column(
+                           children: [
+                             AnimatedContainer(
+                               duration: const Duration(milliseconds: 200),
+                               height: candidateData.isNotEmpty ? 50 : 0,
+                               margin: EdgeInsets.symmetric(vertical: candidateData.isNotEmpty ? 8 : 0),
+                               decoration: BoxDecoration(
+                                 color: sageGreen.withValues(alpha:0.1),
+                                 borderRadius: BorderRadius.circular(12),
+                                 border: Border.all(color: sageGreen, width: 1, style: BorderStyle.solid),
+                               ),
+                               child: const Center(child: Icon(Icons.download_rounded, color: sageGreen)),
+                             ),
+                             _buildDraggableTaskCard(context, ref, column, board, task, index),
+                           ],
+                         );
+                       },
+                     );
+                   },
+                 ),
+
+                );
+              },
             ),
           ),
-   
+
           Padding(
             padding: const EdgeInsets.all(12.0),
             child: TextButton.icon(
@@ -69,6 +121,54 @@ class KanbanViewWidget {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildDropZone(int index, KanbanColumn column, Board board, WidgetRef ref) {
+    return DragTarget<KanbanCard>(
+      onAcceptWithDetails: (details) {
+        ref.read(kanbanProvider(board).notifier).moveTask(
+              details.data,
+              newPosition: index,
+              toColumnId: column.id,
+            );
+      },
+      builder: (context, candidateData, _) {
+        return Container(
+          height: 50, 
+          color: candidateData.isNotEmpty ? Colors.black12 : Colors.transparent,
+        );
+      },
+    );
+  }
+
+  Widget _buildDraggableTaskCard(BuildContext context, WidgetRef ref, KanbanColumn column, Board board, KanbanCard task, int index) {
+    return DragTarget<KanbanCard>(
+      onAcceptWithDetails: (details) {
+        if (details.data.id == task.id) return;
+        ref.read(kanbanProvider(board).notifier).moveTask(details.data,newPosition: index,toColumnId: column.id, );
+      },
+      builder: (context, candidateData, _) {
+        return Draggable<KanbanCard>(
+          data: task, 
+          feedback: Material(
+            elevation: 10,
+            borderRadius: BorderRadius.circular(12),
+            child: SizedBox(
+              width: 250,
+              child: taskCard(context, ref, board, task),
+            ),
+          ),
+          childWhenDragging: Opacity(
+            opacity: 0.2,
+            child: taskCard(context, ref, board, task),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.only(bottom: 8.0),
+            child: taskCard(context, ref, board, task),
+          ),
+        );
+      },
     );
   }
 
@@ -282,7 +382,9 @@ class KanbanViewWidget {
                 onPressed: () async {
                   if (isEditing) {
                     await ref.read(kanbanProvider(board).notifier).updateTask(
-                      taskId: task.id, 
+                      task,
+                      taskId: task.id,
+                      position: task.position, 
                       title: titleController.text,
                       description: descController.text,
                       dueDate: selectedDate?.toIso8601String(),
