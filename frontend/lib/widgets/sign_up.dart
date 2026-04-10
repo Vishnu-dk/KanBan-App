@@ -20,18 +20,25 @@ class _SignUpState extends ConsumerState<SignUp> {
 
 
     final isObscured = ref.watch(obsureProvider);
+    final errorMessage=ref.watch(authErrorProvider);
+
 
     void handleSignUp()async{
       String success=await AuthService().signUp(emailController.text,passwordController.text);
       if(success=="User Created"){
+        ScaffoldMessenger.of(context).removeCurrentSnackBar();
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("User Created"))
+          SnackBar(content: Text("User Created"),duration: const Duration(seconds: 1),backgroundColor:  Colors.green[700],)
         );
-        Navigator.pushNamed(context, "/hoempage");
+        ref.watch(selectionProvider.notifier).setSelection("LogIn");
+        Navigator.pushNamed(context, "/homepage");
       }
       else{
+        ref.read(authErrorProvider.notifier).setError(success);
+        ScaffoldMessenger.of(context).removeCurrentSnackBar();
+
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(success))
+          SnackBar(content: Text(success,style: TextStyle(color: Colors.white),),duration: const Duration(seconds: 1),backgroundColor: const Color.fromARGB(255, 250, 54, 40),)
         );
       }
     }
@@ -42,7 +49,7 @@ class _SignUpState extends ConsumerState<SignUp> {
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha:0.05),
             blurRadius: 20,
             offset: const Offset(0, 10),
           )
@@ -59,6 +66,7 @@ class _SignUpState extends ConsumerState<SignUp> {
               fontWeight: FontWeight.bold,
             ),
           ),
+
           const SizedBox(height: 30,),
           buildTextField("Email", Icons.email,controller:emailController),
           const SizedBox(height: 16),
@@ -66,6 +74,7 @@ class _SignUpState extends ConsumerState<SignUp> {
                     ref.read(obsureProvider.notifier).onToggle();
               },),
           const SizedBox(height: 24),
+          Text(errorMessage ?? "",style: TextStyle(color: Colors.red),),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
               backgroundColor: secondary,

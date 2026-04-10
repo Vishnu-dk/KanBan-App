@@ -34,32 +34,39 @@ class Kanban extends _$Kanban {
     return currentBoard.copyWith(columnNames: fullColumns);
   }
 
-  // 3. Manual refresh method
-  Future<void> refreshBoard() async {
-    state = const AsyncValue.loading();
-    state = await AsyncValue.guard(() => _fetchBoardData(initialBoard));
+  Future<Board> refreshBoard() async {
+    return await _fetchBoardData(initialBoard);
   }
-
-  // 4. Action methods (Side effects)
+  
   Future<void> addColumn(String name) async {
-    await _colService.addColumn(initialBoard.id, name);
-    await refreshBoard();
+    state = await AsyncValue.guard(() async {
+      await _colService.addColumn(initialBoard.id, name);
+      return await refreshBoard(); 
+    });
   }
-
+  
   Future<void> deleteColumn(String columnId) async {
-    await _colService.deleteColumn(columnId);
-    await refreshBoard();
+    state = await AsyncValue.guard(() async {
+      await _colService.deleteColumn(columnId);
+      return await refreshBoard();
+    });
+  }
+  
+  Future<void> editColumn(KanbanColumn column, String columnName) async {
+    state = await AsyncValue.guard(() async {
+      await _colService.updateColumn(column.id, name: columnName, position: column.position);
+      return await refreshBoard();
+    });
   }
 
-  Future<void> editColumn(KanbanColumn column, String columnName) async {
-    await _colService.updateColumn(column.id, name: columnName, position: column.position);
-    await refreshBoard();
-  }
 
   Future<void> addTask(String columnId, String title, String? description, String? dueDate) async {
-    await _cardService.addCard(columnId, title, description, dueDate);
-    await refreshBoard();
+    state = await AsyncValue.guard(() async {
+      await _cardService.addCard(columnId, title, description, dueDate);
+      return await _fetchBoardData(initialBoard);
+    });
   }
+  
 
   Future<void> updateTask(KanbanCard task,{required String taskId, String? title,int?position, String? description, String? dueDate,String? columnId}) async {
     state = await AsyncValue.guard(() async {

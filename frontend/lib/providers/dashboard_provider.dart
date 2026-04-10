@@ -31,16 +31,22 @@ class Dashboard extends _$Dashboard {
   }
 
   Future<void> createBoard(String name) async {
-    try {
+  
+    state = const AsyncLoading();
+  
+    state = await AsyncValue.guard(() async {
       await _service.addBoard(name);
-      fetchBoards();
-    } catch (e) {}
+  
+      return await fetchBoards(); 
+    });
   }
   Future<void> deleteBoard(String boardId) async {
-    try {
+    state = const AsyncLoading();
+    
+    state = await AsyncValue.guard(() async {
       await _service.deleteBoard(boardId);
-      fetchBoards();
-    } catch (e){}
+      return fetchBoards();
+    });
   }
 }
 

@@ -52,7 +52,7 @@ def add_board_details(current_board:BoardCreate,db:Session=Depends(get_db),curre
             raise HTTPException(status_code=401,detail="Unauthorised Entry")
         existing_board=db.query(Board).filter(Board.name==current_board.name,current_user.id==Board.owner_id).first()
         if existing_board:
-            raise HTTPException(status_code=402,detail="Board Name is already in Use")
+            raise HTTPException(status_code=409,detail="Board Name is already in Use")
         new_board=Board(name=current_board.name,owner_id=current_user.id)
         db.add(new_board)
         db.commit()

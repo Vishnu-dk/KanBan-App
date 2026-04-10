@@ -26,13 +26,15 @@ class BoardService {
 
 
 
-  Future<bool> addBoard(String boardName) async {
+  Future<void> addBoard(String boardName) async {
     final response = await http.post(Uri.parse("$baseUrl/boards"),headers: await _getHeaders(),body: json.encode({"name": boardName}),);
 
+   
     if (response.statusCode == 200) {
-      return true;
+      return ;
     } else {
-      return false;
+      final errorData = json.decode(response.body);
+      throw errorData['detail'] ?? "Failed to add board";
     }
   }
 

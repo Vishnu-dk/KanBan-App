@@ -33,7 +33,7 @@ final class DashboardProvider
   Dashboard create() => Dashboard();
 }
 
-String _$dashboardHash() => r'8286060dc75ad22e1c15075b6c7f95bf40ebb046';
+String _$dashboardHash() => r'fd1b204f36db40ba28415522ec4d4446376b4697';
 
 abstract class _$Dashboard extends $AsyncNotifier<List<Board>> {
   FutureOr<List<Board>> build();

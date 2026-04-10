@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:frontend/main.dart';
+import 'package:frontend/modals/board.dart';
 import 'package:frontend/providers/dashboard_provider.dart';
 import 'package:frontend/screens/auth_page.dart';
 import 'package:frontend/services/auth_service.dart';
@@ -13,6 +14,26 @@ class DashboardPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final boardsAsync = ref.watch(dashboardProvider);
+    ref.listen<AsyncValue<List<Board>>>(
+      dashboardProvider,
+      (previous, next) {
+        if (next is AsyncError && !next.isLoading) {
+          ScaffoldMessenger.of(context).removeCurrentSnackBar();
+
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                next.error.toString(), 
+                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+              ),
+              backgroundColor: const Color.fromARGB(255, 250, 54, 40), 
+              behavior: SnackBarBehavior.floating, 
+              duration: const Duration(seconds: 4),
+            ),
+          );
+        }
+      },
+    );
 
     return Scaffold(
       backgroundColor: primary,
@@ -20,7 +41,7 @@ class DashboardPage extends ConsumerWidget {
         backgroundColor: secondary,
         elevation: 0,
         title: Text("KanBan App", style: TextStyle(color: primary, fontWeight: FontWeight.bold, letterSpacing: 1.1)),
-                actions: [
+        actions: [
           PopupMenuButton<String>(
 
             color: primary, 
@@ -36,13 +57,17 @@ class DashboardPage extends ConsumerWidget {
             onSelected: (value) async { 
              if (value == 'logout') {
 
-                 await AuthService().logout(); 
-                 if (!context.mounted) return;
-                 Navigator.pushAndRemoveUntil(
-                   context,
-                   MaterialPageRoute(builder: (context) => const AuthPage()),
-                   (route) => false, 
-                 );
+                await AuthService().logout(); 
+                if (!context.mounted) return;
+                ScaffoldMessenger.of(context).removeCurrentSnackBar();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text("Logged Out Successfully !!"),duration: const Duration(seconds: 1),backgroundColor:  Colors.green[600])
+                );
+                Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(builder: (context) => const AuthPage()),
+                  (route) => false, 
+                );
 
              }
             },
@@ -94,7 +119,19 @@ class DashboardPage extends ConsumerWidget {
                     Text("My Boards", style: TextStyle(color: secondary, fontSize: 28, fontWeight: FontWeight.bold)),
                     ElevatedButton.icon(
 
-                      onPressed: () => CommonWidgets().showDialogs(context, "Create Board","Give your project a name to get started.","Create", (val) =>ref.read(dashboardProvider.notifier).createBoard(val)),
+                      onPressed: () => CommonWidgets().showDialogs(context, "Create Board","Give your project a name to get started.","Create", 
+                        (val)async {
+                          await ref.read(dashboardProvider.notifier).createBoard(val);
+
+                          final state = ref.read(dashboardProvider);
+
+                          if (!state.hasError) {
+                            if (context.mounted && Navigator.of(context).canPop()) {
+                              Navigator.pop(context);
+                            }
+                          } 
+                        },
+                      ),
                       icon: const Icon(Icons.add, size: 18),
                       label: const Text("Create Board"),
                       style: ElevatedButton.styleFrom(backgroundColor: sageGreen, foregroundColor: Colors.white),
@@ -106,28 +143,26 @@ class DashboardPage extends ConsumerWidget {
               
               Expanded(
                 child: boardsAsync.when(
-                  loading: () => const Center(child: CircularProgressIndicator()),
+                  skipLoadingOnRefresh: true, 
+                  loading: () => const Center(child: CircularProgressIndicator(color: sageGreen)),
                   error: (err, stack) {
-                    if (err.toString().contains("404")) {
+                    final errorMessage = err.toString();
+
+                    if (errorMessage.contains("404") || errorMessage.contains("Not Found")) {
                       return const Center(child: Text("No boards found. Create one!"));
                     }
-                    return const Center(child: Text("Authentication Error"));
+
+                    if (boardsAsync.hasValue) {
+                      return _buildBoardsGrid(boardsAsync.value!,ref);
+                    }
+
+                    return Center(child: Text(errorMessage));
                   },
                   data: (myBoards) {
                     if (myBoards.isEmpty) {
                       return const Center(child: Text("No boards found. Create one!"));
                     }
-                    return GridView.builder(
-                      padding: const EdgeInsets.all(24),
-                      gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-                        maxCrossAxisExtent: 300,
-                        crossAxisSpacing: 20,
-                        mainAxisSpacing: 20,
-                        childAspectRatio: 1.3,
-                      ),
-                      itemCount: myBoards.length,
-                      itemBuilder: (context, index) => boardCard(context, myBoards[index],ref),
-                    );
+                    return _buildBoardsGrid(myBoards,ref);
                   },
                 ),
               ),
@@ -137,4 +172,18 @@ class DashboardPage extends ConsumerWidget {
       ),
     );
   }
+  Widget _buildBoardsGrid(List<Board> boards,WidgetRef ref) {
+    return GridView.builder(
+      padding: const EdgeInsets.all(24),
+      gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+        maxCrossAxisExtent: 300,
+        crossAxisSpacing: 20,
+        mainAxisSpacing: 20,
+        childAspectRatio: 1.3,
+      ),
+      itemCount: boards.length,
+      itemBuilder: (context, index) => boardCard(context, boards[index], ref),
+    );
+  }
+
 }

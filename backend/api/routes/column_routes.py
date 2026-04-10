@@ -20,8 +20,7 @@ def get_column_details(board_id=str,db:Session=Depends(get_db),current_user:User
         current_board=db.query(Board).filter(Board.id==board_id,Board.owner_id==current_user.id).first()
         current_column=db.query(Column).filter(Column.board_id==current_board.id).all()
 
-        if not current_column:
-            raise HTTPException(status_code=404,detail="No cloumn as of now")
+
         return current_column
     except HTTPException:
         raise
@@ -36,7 +35,7 @@ def add_column_details(column:ColumnCreate,db:Session=Depends(get_db),current_us
         current_column=db.query(Column).filter(Column.title==column.name,Column.board_id==current_board.id).first()
         current_count=db.query(Column).filter(Column.board_id==column.board_id).count()
         if current_column:
-            raise HTTPException(status_code=404,detail="Column name has been already used")
+            raise HTTPException(status_code=409,detail="Column name has been already used")
         data=Column(title=column.name,board_id=column.board_id,position=current_count)
 
         db.add(data)
@@ -81,7 +80,7 @@ def edit_column_details(column_id:str,column_update:ColumnUpdate,db:Session=Depe
             raise HTTPException(status_code=404,detail="Column not Found")
         if column_update.name is not None:
             if existing_column:
-                raise HTTPException(status_code=402,detail="Column title is already in use")
+                raise HTTPException(status_code=409,detail="Column title is already in use")
             current_column.title=column_update.name
         if column_update.position is not None and column_update.position != current_column.position:
             new_position=column_update.position

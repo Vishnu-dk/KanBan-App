@@ -91,7 +91,7 @@ final class AuthErrorProvider extends $NotifierProvider<AuthError, String?> {
   }
 }
 
-String _$authErrorHash() => r'01980f70593a371e5c305548a49d9299e012cd37';
+String _$authErrorHash() => r'c2f31dd149ec55d93a82c26e8b0631ab9d355928';
 
 abstract class _$AuthError extends $Notifier<String?> {
   String? build();

@@ -79,7 +79,9 @@ class _AuthPageState extends ConsumerState<AuthPage> {
                                   ),
                                   onPressed: ()=>{
                                 
-                                      ref.read(selectionProvider.notifier).setSelection("LogIn")
+                                      ref.read(selectionProvider.notifier).setSelection("LogIn"),
+                                      ref.read(authErrorProvider.notifier).setError(null)
+
                                   
                                   }, 
                                   child: Padding(
@@ -98,7 +100,8 @@ class _AuthPageState extends ConsumerState<AuthPage> {
                                     elevation: 3
                                   ),
                                   onPressed: ()=>{
-                                    ref.read(selectionProvider.notifier).setSelection("SignUp")
+                                    ref.read(selectionProvider.notifier).setSelection("SignUp"),
+                                    ref.read(authErrorProvider.notifier).setError(null)
                                   }, 
                                   child: Padding(
                                     padding: EdgeInsetsGeometry.all(10),

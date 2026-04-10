@@ -11,28 +11,43 @@ class CardService {
     'Authorization': 'Bearer ${await _auth.getToken()}'
   };
 
-  Future<void> addCard(String columnId, String title,String? description, String? dueDate) async {
-    await http.post(Uri.parse("$baseUrl/cards"), 
-      headers: await _headers(), 
-      body: json.encode({"title": title, "column_id": columnId, if (description != null) "description": description,
-                                  if (dueDate != null) "due_date": dueDate, }));
-  }
-
-
-  Future<void> updateCard(String id, {int?position,String? title, String? description, String? dueDate,String?columnId}) async {
-    final headers = await _headers();
-    headers['Content-Type'] = 'application/json';
-
-    await http.patch(Uri.parse("$baseUrl/cards/$id"),headers: headers,
-                                body: json.encode({
-                                  if (title != null) "title": title,
-                                  if (description != null) "description": description,
-                                  if (dueDate != null) "due_date": dueDate, 
-                                  if (position != null) "position": position, 
-                                  if (columnId != null) "column_id": columnId, 
-                                }),
+  Future<void> addCard(String columnId, String title, String? description, String? dueDate) async {
+    final response = await http.post(
+      Uri.parse("$baseUrl/cards"),
+      headers: await _headers(),
+      body: json.encode({
+        "title": title,
+        "column_id": columnId,
+        if (description != null) "description": description,
+        if (dueDate != null) "due_date": dueDate,
+      }),
     );
+
+    if (response.statusCode != 200) {
+      final errorData = json.decode(response.body);
+      throw errorData['detail'] ?? "Failed to add task";
+    }
   }
+
+  Future<void> updateCard(String id, {int? position, String? title, String? description, String? dueDate, String? columnId}) async {
+    final response = await http.patch(
+      Uri.parse("$baseUrl/cards/$id"),
+      headers: await _headers(),
+      body: json.encode({
+        if (title != null) "title": title,
+        if (description != null) "description": description,
+        if (dueDate != null) "due_date": dueDate,
+        if (position != null) "position": position,
+        if (columnId != null) "column_id": columnId,
+      }),
+    );
+
+    if (response.statusCode != 200) {
+      final errorData = json.decode(response.body);
+      throw errorData['detail'] ?? "Failed to update task";
+    }
+  }
+
 
   Future<void> deleteCard(String id) async {
     final response = await http.delete(Uri.parse("$baseUrl/cards/$id"),headers: await _headers(),);

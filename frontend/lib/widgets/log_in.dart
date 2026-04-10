@@ -27,18 +27,21 @@ class _LogInState extends ConsumerState<LogIn> {
     void handleLogin()async{
       bool success=await AuthService().logIn(ref,emailController.text, passwordController.text);
       if(success){
+        ScaffoldMessenger.of(context).removeCurrentSnackBar();
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Logged IN !!"))
+          SnackBar(content: Text("Logged IN !!"),duration: const Duration(seconds: 1),backgroundColor:  Colors.green[700])
         );
         Navigator.pushAndRemoveUntil(
         context,
        MaterialPageRoute(builder: (context) => const DashboardPage()),
-      (route) => false, // This removes all previous routes
+      (route) => false,
     );
       }else{
         ref.read(authErrorProvider.notifier).setError("Invalid UserName/Password");
+        ScaffoldMessenger.of(context).removeCurrentSnackBar();
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Invalid UserName / Password"))
+            SnackBar(content: Text("Invalid UserName / Password", style: TextStyle(color: Colors.white),),duration: const Duration(seconds: 1),backgroundColor: const Color.fromARGB(255, 250, 54, 40),)
+
         );
       }
     }
@@ -51,7 +54,7 @@ class _LogInState extends ConsumerState<LogIn> {
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha:0.05),
             blurRadius: 20,
             offset: const Offset(0, 10),
           )

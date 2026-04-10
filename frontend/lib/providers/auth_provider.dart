@@ -6,6 +6,8 @@
 
 
 
+import 'dart:async';
+
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 
@@ -19,15 +21,32 @@ class Obsure extends _$Obsure{
 }
 
 
+
 @riverpod
-class AuthError extends _$AuthError{
+class AuthError extends _$AuthError {
+  Timer? _timer;
 
   @override
-  String?build()=>null;
+  String? build() {
+    ref.onDispose(() => _timer?.cancel());
+    return null;
+  }
 
-  void setError(String?message)=>state=message;
-  void clear()=>state=null;
+  void setError(String? message) {
+    state = message;
+    _timer?.cancel();
 
+    if (message != null && message.isNotEmpty) {
+      _timer = Timer(const Duration(seconds: 2), () {
+        state = null;
+      });
+    }
+  }
+
+  void clear() {
+    _timer?.cancel();
+    state = null;
+  }
 }
 
 

@@ -17,27 +17,44 @@ class ColumnService {
 
 
   Future<void> addColumn(String boardId, String name) async {
-    await http.post(Uri.parse("$baseUrl/columns"), 
-      headers: await _headers(), 
-      body: json.encode({"name": name, "board_id": boardId}));
+    final response = await http.post(
+      Uri.parse("$baseUrl/columns"),
+      headers: await _headers(),
+      body: json.encode({"name": name, "board_id": boardId}),
+    );
+  
+    if (response.statusCode != 200) {
+      final errorData = json.decode(response.body);
+      throw errorData['detail'] ?? "Failed to add column";
+    }
   }
-
-
+  
   Future<void> updateColumn(String id, {String? name, int? position}) async {
-      final response = await http.patch(
-    Uri.parse("$baseUrl/columns/$id"), 
-    headers: await _headers(), 
-    body: json.encode({
-      if (name != null) "name": name,
-      if (position != null) "position": position,
-    }),
-  );
-    if (response.statusCode == 422) {
-}
+    final response = await http.patch(
+      Uri.parse("$baseUrl/columns/$id"),
+      headers: await _headers(),
+      body: json.encode({
+        if (name != null) "name": name,
+        if (position != null) "position": position,
+      }),
+    );
+  
+    if (response.statusCode != 200) {
+      final errorData = json.decode(response.body);
+      throw errorData['detail'] ?? "Failed to update column";
+    }
   }
-
-
+  
   Future<void> deleteColumn(String id) async {
-    await http.delete(Uri.parse("$baseUrl/columns/$id"), headers: await _headers());
+    final response = await http.delete(
+      Uri.parse("$baseUrl/columns/$id"),
+      headers: await _headers(),
+    );
+  
+    if (response.statusCode != 200) {
+      final errorData = json.decode(response.body);
+      throw errorData['detail'] ?? "Failed to delete column";
+    }
   }
+
 }

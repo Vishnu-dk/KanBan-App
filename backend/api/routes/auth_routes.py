@@ -17,7 +17,7 @@ def user_register(current_user:UserSignUp, db:Session=Depends(get_db)):
     try:
         existing_user=db.query(User).filter(User.email==current_user.email).first()
         if existing_user:
-            raise HTTPException(status_code=402,detail="User Already Exists")
+            return "User Already Exists"
         
         hashed_pass=hashing_password(current_user.password)
     
@@ -30,7 +30,7 @@ def user_register(current_user:UserSignUp, db:Session=Depends(get_db)):
         raise
     except:
         db.rollback()
-        raise HTTPException (status_code=500,detail="Server Error !")
+        return "Server Error !"
     
 
 @router.post("/auth/login")

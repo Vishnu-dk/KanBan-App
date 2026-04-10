@@ -26,7 +26,7 @@ def add_card_details( card:CardCreate, db:Session=Depends(get_db),current_user:U
         cards=db.query(Card).filter(Card.title==card.title,Card.column_id==card.column_id).all()
         cards_count=db.query(Card).filter(Card.column_id==card.column_id).count()
         if  cards:
-            raise HTTPException(status_code=404,detail="Card Title already in use")
+            raise HTTPException(status_code=409,detail="Card Title already in use")
 
         new_card=Card(title=card.title,due_date=card.due_date,column_id=card.column_id,description=card.description, position=cards_count)
         db.add(new_card)
@@ -37,7 +37,7 @@ def add_card_details( card:CardCreate, db:Session=Depends(get_db),current_user:U
         raise
     except Exception as e:
         db.rollback()
-        raise HTTPException(status_code=500,detail=str(e))
+        raise HTTPException(status_code=500,detail="Internal Server Error")
     
 
 @router.delete("/cards/{card_id}")
@@ -57,9 +57,11 @@ def delete_card_details(card_id: str, db: Session = Depends(get_db), current_use
             
         db.commit()
         return {"message": "Card Deleted"}
+    except HTTPException:
+        raise
     except Exception as e:
         db.rollback()
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Internal Server Error")
 
 @router.patch("/cards/{card_id}")
 def edit_card_details(card_id: str, card_update: CardUpdate, db: Session = Depends(get_db)):
@@ -69,6 +71,9 @@ def edit_card_details(card_id: str, card_update: CardUpdate, db: Session = Depen
             raise HTTPException(status_code=404, detail="Card not found")
 
         if card_update.title:
+            title=db.query(Card).filter(Card.id!=card_id,card_update.title==Card.title,Card.column_id==card_update.column_id).all()
+            if  title:
+                raise HTTPException(status_code=409,detail="Card Title already in use")
             current_card.title = card_update.title
         if card_update.description is not None:
             current_card.description = card_update.description
@@ -82,40 +87,42 @@ def edit_card_details(card_id: str, card_update: CardUpdate, db: Session = Depen
 
         if old_column_id != new_column_id or old_position != new_position:
 
-            if old_column_id != new_column_id:
-                db.query(Card).filter(
+            if old_column_id != new_column_id:  #if both column id is different then
+                db.query(Card).filter(          # select the cards after the current and and make its position no -1
                     Card.column_id == old_column_id,
                     Card.position > old_position
                 ).update({Card.position: Card.position - 1})
 
 
                 db.query(Card).filter(
-                    Card.column_id == new_column_id,
-                    Card.position >= new_position
+                    Card.column_id == new_column_id,  
+                    Card.position >= new_position  # select the cards after the new position of the new column and make it position +1
                 ).update({Card.position: Card.position + 1})
 
                 current_card.column_id = new_column_id
             
             else:
-                if new_position > old_position:
+                if new_position > old_position:   # if in same column and new position greater than old
                     db.query(Card).filter(
                         Card.column_id == old_column_id,
-                        Card.position > old_position,
-                        Card.position <= new_position
-                    ).update({Card.position: Card.position - 1})
+                        Card.position > old_position,   # select the card after the old position
+                        Card.position <= new_position   # select the card before the new position and new position
+                    ).update({Card.position: Card.position - 1})  # decrement position by 1
                 elif new_position < old_position:
-                    db.query(Card).filter(
-                        Card.column_id == old_column_id,
-                        Card.position >= new_position,
-                        Card.position < old_position
-                    ).update({Card.position: Card.position + 1})
+                    db.query(Card).filter(          # if in same column and new position less than old
+                        Card.column_id == old_column_id,    
+                        Card.position >= new_position,      # select the card after the new position and new position
+                        Card.position < old_position           # select the card before the old position
+                    ).update({Card.position: Card.position + 1}) # increment position by 1
 
             current_card.position = new_position
 
         db.commit()
         db.refresh(current_card)
         return current_card
+    except HTTPException:
+        raise
 
     except Exception as e:
         db.rollback()
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Internal Server Error")
