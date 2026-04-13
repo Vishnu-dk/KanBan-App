@@ -46,7 +46,7 @@ def user_register(current_user:UserSignUp, db:Session=Depends(get_db)):
         if not password_check:
             raise HTTPException(status_code=402,detail="Invalid Credentials")
         tocken=create_token(current_user.email)
-        return tocken
+        return {"access_token": tocken, "token_type": "bearer"}
     except HTTPException:
         raise
     except:

@@ -28,7 +28,7 @@ class _SignUpState extends ConsumerState<SignUp> {
       if(success=="User Created"){
         ScaffoldMessenger.of(context).removeCurrentSnackBar();
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("User Created"),duration: const Duration(seconds: 1),backgroundColor:  Colors.green[700],)
+          SnackBar(content: Text("User Created"),duration: const Duration(seconds: 1),backgroundColor:  Colors.green[700],behavior: SnackBarBehavior.floating,)
         );
         ref.watch(selectionProvider.notifier).setSelection("LogIn");
         Navigator.pushNamed(context, "/homepage");
@@ -38,7 +38,7 @@ class _SignUpState extends ConsumerState<SignUp> {
         ScaffoldMessenger.of(context).removeCurrentSnackBar();
 
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(success,style: TextStyle(color: Colors.white),),duration: const Duration(seconds: 1),backgroundColor: const Color.fromARGB(255, 250, 54, 40),)
+          SnackBar(content: Text(success,style: TextStyle(color: Colors.white),),duration: const Duration(seconds: 1),behavior: SnackBarBehavior.floating,backgroundColor: const Color.fromARGB(255, 250, 54, 40),)
         );
       }
     }
@@ -87,7 +87,9 @@ class _SignUpState extends ConsumerState<SignUp> {
           ),
           const SizedBox(height: 20),
           TextButton(
-            onPressed: () {},
+            onPressed: () {
+              ref.read(selectionProvider.notifier).setSelection("LogIn");
+            },
             child: const Text(
               "Already have an account? Login",
               style: TextStyle(color: Color(0xFF6B6B6B)),

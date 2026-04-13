@@ -93,13 +93,17 @@ def edit_card_details(card_id: str, card_update: CardUpdate, db: Session = Depen
                     Card.position > old_position
                 ).update({Card.position: Card.position - 1})
 
+                same_name_items=db.query(Card).filter(Card.title==current_card.title,Card.column_id== new_column_id).all()
+                if not same_name_items:
+                    db.query(Card).filter(
+                        Card.column_id == new_column_id,  
+                        Card.position >= new_position  # select the cards after the new position of the new column and make it position +1
+                    ).update({Card.position: Card.position + 1})
 
-                db.query(Card).filter(
-                    Card.column_id == new_column_id,  
-                    Card.position >= new_position  # select the cards after the new position of the new column and make it position +1
-                ).update({Card.position: Card.position + 1})
+                    current_card.column_id = new_column_id
 
-                current_card.column_id = new_column_id
+
+
             
             else:
                 if new_position > old_position:   # if in same column and new position greater than old

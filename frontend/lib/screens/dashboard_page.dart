@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:frontend/main.dart';
-import 'package:frontend/modals/board.dart';
+import 'package:frontend/providers/auth_provider.dart';
 import 'package:frontend/providers/dashboard_provider.dart';
-import 'package:frontend/screens/auth_page.dart';
-import 'package:frontend/services/auth_service.dart';
 import 'package:frontend/widgets/common_widgets.dart';
 import 'package:frontend/widgets/dashboard_widgets.dart';
 
@@ -14,26 +12,6 @@ class DashboardPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final boardsAsync = ref.watch(dashboardProvider);
-    ref.listen<AsyncValue<List<Board>>>(
-      dashboardProvider,
-      (previous, next) {
-        if (next is AsyncError && !next.isLoading) {
-          ScaffoldMessenger.of(context).removeCurrentSnackBar();
-
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                next.error.toString(), 
-                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-              ),
-              backgroundColor: const Color.fromARGB(255, 250, 54, 40), 
-              behavior: SnackBarBehavior.floating, 
-              duration: const Duration(seconds: 4),
-            ),
-          );
-        }
-      },
-    );
 
     return Scaffold(
       backgroundColor: primary,
@@ -55,21 +33,9 @@ class DashboardPage extends ConsumerWidget {
             ),
 
             onSelected: (value) async { 
-             if (value == 'logout') {
-
-                await AuthService().logout(); 
-                if (!context.mounted) return;
-                ScaffoldMessenger.of(context).removeCurrentSnackBar();
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text("Logged Out Successfully !!"),duration: const Duration(seconds: 1),backgroundColor:  Colors.green[600])
-                );
-                Navigator.pushAndRemoveUntil(
-                  context,
-                  MaterialPageRoute(builder: (context) => const AuthPage()),
-                  (route) => false, 
-                );
-
-             }
+              if (value == 'logout') {
+                await ref.read(authProvider.notifier).logout(); 
+              }
             },
 
             itemBuilder: (context) => [
@@ -151,9 +117,8 @@ class DashboardPage extends ConsumerWidget {
                     if (errorMessage.contains("404") || errorMessage.contains("Not Found")) {
                       return const Center(child: Text("No boards found. Create one!"));
                     }
-
                     if (boardsAsync.hasValue) {
-                      return _buildBoardsGrid(boardsAsync.value!,ref);
+                      return DashboardWidgets().buildBoardsGrid(boardsAsync.value!,ref);
                     }
 
                     return Center(child: Text(errorMessage));
@@ -162,7 +127,7 @@ class DashboardPage extends ConsumerWidget {
                     if (myBoards.isEmpty) {
                       return const Center(child: Text("No boards found. Create one!"));
                     }
-                    return _buildBoardsGrid(myBoards,ref);
+                    return  DashboardWidgets().buildBoardsGrid(myBoards,ref);
                   },
                 ),
               ),
@@ -172,18 +137,6 @@ class DashboardPage extends ConsumerWidget {
       ),
     );
   }
-  Widget _buildBoardsGrid(List<Board> boards,WidgetRef ref) {
-    return GridView.builder(
-      padding: const EdgeInsets.all(24),
-      gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-        maxCrossAxisExtent: 300,
-        crossAxisSpacing: 20,
-        mainAxisSpacing: 20,
-        childAspectRatio: 1.3,
-      ),
-      itemCount: boards.length,
-      itemBuilder: (context, index) => boardCard(context, boards[index], ref),
-    );
-  }
+
 
 }

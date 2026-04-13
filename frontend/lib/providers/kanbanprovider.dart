@@ -1,4 +1,3 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:frontend/modals/board.dart';
 import 'package:frontend/modals/card.dart';
 import 'package:frontend/modals/column.dart';
@@ -16,7 +15,7 @@ class Kanban extends _$Kanban {
 
   @override
   Future<Board> build(Board initialBoard) async {
-    return _fetchBoardData(initialBoard);
+      return _fetchBoardData(initialBoard);
   }
 
   Future<Board> _fetchBoardData(Board currentBoard) async {
@@ -37,27 +36,34 @@ class Kanban extends _$Kanban {
   Future<Board> refreshBoard() async {
     return await _fetchBoardData(initialBoard);
   }
-  
+
   Future<void> addColumn(String name) async {
     state = await AsyncValue.guard(() async {
       await _colService.addColumn(initialBoard.id, name);
       return await refreshBoard(); 
     });
   }
-  
+
   Future<void> deleteColumn(String columnId) async {
     state = await AsyncValue.guard(() async {
       await _colService.deleteColumn(columnId);
       return await refreshBoard();
     });
   }
-  
+
   Future<void> editColumn(KanbanColumn column, String columnName) async {
     state = await AsyncValue.guard(() async {
       await _colService.updateColumn(column.id, name: columnName, position: column.position);
       return await refreshBoard();
     });
   }
+  Future<void> moveColumn(KanbanColumn column, int newPosition) async {
+  state = await AsyncValue.guard(() async {
+    // Call your service to update the position index
+    await _colService.updateColumn(column.id, position: newPosition);
+    return await refreshBoard();
+  });
+}
 
 
   Future<void> addTask(String columnId, String title, String? description, String? dueDate) async {

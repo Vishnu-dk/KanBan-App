@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:frontend/main.dart';
 import 'package:frontend/providers/auth_provider.dart';
-import 'package:frontend/screens/dashboard_page.dart';
 import 'package:frontend/services/auth_service.dart';
 import 'package:frontend/widgets/text_field_auth.dart';
 
@@ -14,8 +13,10 @@ class LogIn extends ConsumerStatefulWidget {
 }
 
 class _LogInState extends ConsumerState<LogIn> {
-    final  emailController=TextEditingController();
-    final  passwordController=TextEditingController();
+
+  final  emailController=TextEditingController();
+  final  passwordController=TextEditingController();
+
   @override
   Widget build(BuildContext context) {
 
@@ -29,18 +30,14 @@ class _LogInState extends ConsumerState<LogIn> {
       if(success){
         ScaffoldMessenger.of(context).removeCurrentSnackBar();
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Logged IN !!"),duration: const Duration(seconds: 1),backgroundColor:  Colors.green[700])
+          SnackBar(content: Text("Logged IN !!"),duration: const Duration(seconds: 1),behavior: SnackBarBehavior.floating,backgroundColor:  Colors.green[700])
         );
-        Navigator.pushAndRemoveUntil(
-        context,
-       MaterialPageRoute(builder: (context) => const DashboardPage()),
-      (route) => false,
-    );
+        ref.invalidate(authProvider); 
       }else{
         ref.read(authErrorProvider.notifier).setError("Invalid UserName/Password");
         ScaffoldMessenger.of(context).removeCurrentSnackBar();
         ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text("Invalid UserName / Password", style: TextStyle(color: Colors.white),),duration: const Duration(seconds: 1),backgroundColor: const Color.fromARGB(255, 250, 54, 40),)
+            SnackBar(content: Text("Invalid UserName / Password", style: TextStyle(color: Colors.white),),behavior: SnackBarBehavior.floating,duration: const Duration(seconds: 1),backgroundColor: const Color.fromARGB(255, 250, 54, 40),)
 
         );
       }
@@ -75,9 +72,8 @@ class _LogInState extends ConsumerState<LogIn> {
           buildTextField("Email", Icons.email,controller:emailController,errorText: errorMessage),
           const SizedBox(height: 16),
           buildTextField("Password",Icons.lock,controller:passwordController,errorText: errorMessage, isObscure: isObscured,  onToggle: () {
-    // Call the toggle method we defined in the Notifier
-    ref.read(obsureProvider.notifier).onToggle();
-  },),
+            ref.read(obsureProvider.notifier).onToggle();
+          },),
           const SizedBox(height: 24),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
@@ -91,7 +87,9 @@ class _LogInState extends ConsumerState<LogIn> {
           ),
           const SizedBox(height: 20),
           TextButton(
-            onPressed: () {},
+            onPressed: () {
+              ref.read(selectionProvider.notifier).setSelection("SignUp");
+            },
             child: const Text(
               "New User ? SignUp",
               style: TextStyle(color: Color(0xFF6B6B6B)),

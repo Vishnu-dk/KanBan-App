@@ -14,8 +14,8 @@ class Dashboard extends _$Dashboard {
   final _columnService = ColumnService();
 
   @override
-  Future<List<Board>> build() async {
-    return fetchBoards();
+  Future<List<Board>> build( ) async {
+    return await fetchBoards();
   }
 
   Future<List<Board>> fetchBoards() async {
@@ -31,21 +31,20 @@ class Dashboard extends _$Dashboard {
   }
 
   Future<void> createBoard(String name) async {
-  
-    state = const AsyncLoading();
-  
+
     state = await AsyncValue.guard(() async {
       await _service.addBoard(name);
-  
-      return await fetchBoards(); 
+      ref.invalidateSelf();
+      return future; 
     });
   }
   Future<void> deleteBoard(String boardId) async {
     state = const AsyncLoading();
-    
+
     state = await AsyncValue.guard(() async {
       await _service.deleteBoard(boardId);
-      return fetchBoards();
+          ref.invalidateSelf();
+      return future;
     });
   }
 }

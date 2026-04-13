@@ -3,7 +3,6 @@ import 'package:frontend/main.dart';
 
 class CommonWidgets {
 
-  
   void confirmDelete({
     required BuildContext context,
     required String id,

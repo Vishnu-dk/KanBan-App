@@ -1,15 +1,9 @@
-// import 'package:flutter_riverpod/legacy.dart';
-
-// final obscureProvider = StateProvider<bool>((ref) => true);
-// final authErrorProvider = StateProvider<String?>((ref) => null);
-// final selectionProvider=StateProvider<String>((ref)=>"LogIn");
-
 
 
 import 'dart:async';
-
+import 'package:frontend/services/auth_service.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-
+import 'package:jwt_decoder/jwt_decoder.dart';
 
 part 'auth_provider.g.dart';
 
@@ -57,4 +51,36 @@ class Selection extends _$Selection{
   
   String build()=>"LogIn";
   void setSelection(String value)=>state=value;
+}
+
+@riverpod
+class Auth extends _$Auth {
+  @override
+  Future<bool> build() async {
+    final token = await AuthService().getToken();
+
+    if (token != null && token.isNotEmpty) {
+
+      if (JwtDecoder.isExpired(token)) {
+        return false; 
+      }
+      final timer = Timer.periodic(const Duration(seconds: 2), (t) async {
+        final currentToken = await AuthService().getToken();
+        if (currentToken == null || JwtDecoder.isExpired(currentToken)) {
+          t.cancel();
+          logout(); 
+        }
+      });
+
+      ref.onDispose(timer.cancel);
+      return true;
+    }
+    
+    return false;
+  }
+
+  Future<void> logout() async {
+    await AuthService().logout();
+    state = const AsyncValue.data(false);
+  }
 }

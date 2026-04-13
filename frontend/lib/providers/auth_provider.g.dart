@@ -161,3 +161,46 @@ abstract class _$Selection extends $Notifier<String> {
     element.handleCreate(ref, build);
   }
 }
+
+@ProviderFor(Auth)
+final authProvider = AuthProvider._();
+
+final class AuthProvider extends $AsyncNotifierProvider<Auth, bool> {
+  AuthProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'authProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$authHash();
+
+  @$internal
+  @override
+  Auth create() => Auth();
+}
+
+String _$authHash() => r'c3a0752a581654b56dac17f1a398516162dd5b3c';
+
+abstract class _$Auth extends $AsyncNotifier<bool> {
+  FutureOr<bool> build();
+  @$mustCallSuper
+  @override
+  void runBuild() {
+    final ref = this.ref as $Ref<AsyncValue<bool>, bool>;
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<AsyncValue<bool>, bool>,
+              AsyncValue<bool>,
+              Object?,
+              Object?
+            >;
+    element.handleCreate(ref, build);
+  }
+}

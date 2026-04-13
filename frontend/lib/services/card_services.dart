@@ -1,20 +1,14 @@
 import 'dart:convert';
-
 import 'package:frontend/services/auth_service.dart';
 import 'package:http/http.dart' as http;
+
+
 class CardService {
-
-  final _auth = AuthService();
-
-  Future<Map<String, String>> _headers() async => {
-    'Content-Type': 'application/json', 
-    'Authorization': 'Bearer ${await _auth.getToken()}'
-  };
 
   Future<void> addCard(String columnId, String title, String? description, String? dueDate) async {
     final response = await http.post(
       Uri.parse("$baseUrl/cards"),
-      headers: await _headers(),
+      headers: await AuthService().getHeaders(),
       body: json.encode({
         "title": title,
         "column_id": columnId,
@@ -32,7 +26,7 @@ class CardService {
   Future<void> updateCard(String id, {int? position, String? title, String? description, String? dueDate, String? columnId}) async {
     final response = await http.patch(
       Uri.parse("$baseUrl/cards/$id"),
-      headers: await _headers(),
+      headers: await AuthService().getHeaders(),
       body: json.encode({
         if (title != null) "title": title,
         if (description != null) "description": description,
@@ -48,18 +42,16 @@ class CardService {
     }
   }
 
-
   Future<void> deleteCard(String id) async {
-    final response = await http.delete(Uri.parse("$baseUrl/cards/$id"),headers: await _headers(),);
+    final response = await http.delete(Uri.parse("$baseUrl/cards/$id"),headers: await AuthService().getHeaders(),);
 
     if (response.statusCode != 200 && response.statusCode != 204) {
       throw Exception("Failed to delete card: ${response.body}");
     }
   }
 
-
   Future<List<dynamic>> getCards(String columnId) async {
-    final response = await http.get(Uri.parse("$baseUrl/cards?column_id=$columnId"),headers: await _headers());
+    final response = await http.get(Uri.parse("$baseUrl/cards?column_id=$columnId"),headers: await AuthService().getHeaders());
 
     if (response.statusCode == 200) {
       return json.decode(response.body);
@@ -69,4 +61,5 @@ class CardService {
       throw Exception("Failed to load cards");
     }
   }
+
 }

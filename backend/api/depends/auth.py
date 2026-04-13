@@ -34,7 +34,7 @@ DUMMY_PASS=hashing_password("DUMMY_PASSWORD")
 
 def create_token(email)->str:
     payload={"email":email}
-    expire=datetime.now(timezone.utc)+timedelta(days=1)
+    expire=datetime.now(timezone.utc)+timedelta(days=15)
     payload.update({"exp":expire})
     return jwt.encode(payload,SECRET_KEY,algorithm=ALGORITHM)
 
