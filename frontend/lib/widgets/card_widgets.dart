@@ -1,6 +1,7 @@
 
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:frontend/main.dart';
 import 'package:frontend/modals/board.dart';
@@ -10,11 +11,10 @@ import 'package:frontend/providers/kanbanprovider.dart';
 import 'package:frontend/widgets/common_widgets.dart';
 
 class CardWidgets {
-  
+
   Widget taskCard(BuildContext context,WidgetRef ref, Board board, KanbanCard task) {
     return Container(
       width: double.infinity,
-      margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: primary,
@@ -43,7 +43,6 @@ class CardWidgets {
     final descScrollController = ScrollController();
     DateTime? selectedDate = task.dueDate != null ? DateTime.tryParse(task.dueDate!) : null;
 
-    // Shared Input Style to match Add Task dialog
     InputDecoration customInput(String label) => InputDecoration(
       labelText: label,
       filled: true,
@@ -66,8 +65,18 @@ class CardWidgets {
           return AlertDialog(
             backgroundColor: primary,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-            title: Text(isEditing ? "Edit Task" : "Task Details", 
-              style: TextStyle(color: secondary, fontWeight: FontWeight.bold)),
+            title: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(isEditing ? "Edit Task" : "Task Details", 
+                  style: TextStyle(color: secondary, fontWeight: FontWeight.bold)),
+                IconButton(
+                  onPressed: () => Navigator.pop(context), 
+                  icon: Icon(Icons.cancel_outlined,color: secondary.withValues(alpha: 0.5),)
+                )
+
+              ],
+            ),
             content: SizedBox(
               width: 300,
               child: SingleChildScrollView(
@@ -75,16 +84,19 @@ class CardWidgets {
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    // --- TITLE SECTION ---
                     if (!isEditing) const Text("Title", style: TextStyle(fontWeight: FontWeight.bold)),
                     const SizedBox(height: 8),
                     isEditing 
-                      ? TextField(controller: titleController, maxLines: null, decoration: customInput("Task Title")) 
+                      ? TextField(
+                        controller: titleController, maxLines: null, decoration: customInput("Task Title"),
+                        inputFormatters: [
+                          FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z_0-9 ]')),
+                            FilteringTextInputFormatter.deny(RegExp(r'^\s+'))
+                        ],) 
                       : Text(task.title, softWrap: true),
 
                     const SizedBox(height: 16),
 
-                    // --- DESCRIPTION SECTION ---
                     if (!isEditing) const Text("Description", style: TextStyle(fontWeight: FontWeight.bold)),
                     const SizedBox(height: 8),
                     SizedBox(
@@ -146,9 +158,10 @@ class CardWidgets {
               ),
             ),
             actions: [
+
               TextButton(
                 onPressed: () => setState(() => isEditing = !isEditing),
-                child: Text(isEditing ? "Cancel" : "Edit", style: TextStyle(color: secondary.withValues(alpha: 0.5))),
+                child: Text(isEditing ? "Details" : "Edit", style: TextStyle(color: secondary.withValues(alpha: 0.5))),
               ),
               ElevatedButton(
                 style: ElevatedButton.styleFrom(
@@ -188,7 +201,6 @@ class CardWidgets {
   void addTaskDialog(BuildContext context, WidgetRef ref, Board board, KanbanColumn column) {
     final titleController = TextEditingController();
     final descController = TextEditingController();
-    // Controller to handle internal scrolling for the description field
     final descScrollController = ScrollController();
     DateTime? selectedDate;
 
@@ -216,11 +228,16 @@ class CardWidgets {
                   const SizedBox(height: 16),
                   TextField(
                     controller: titleController,
+                    inputFormatters: [
+                      FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z_0-9 ]')),
+                      FilteringTextInputFormatter.deny(RegExp(r'^\s+'), ),
+                    ],
                     autofocus: true,
                     maxLines: null, // Allows title to wrap downwards
                     decoration: InputDecoration(
                       labelText: "Task Title",
                       filled: true,
+                      
                       fillColor: primary.withValues(alpha: .8),
                       border: OutlineInputBorder(
                         
@@ -235,18 +252,17 @@ class CardWidgets {
                   ),
                   const SizedBox(height: 8),
                   
-                  // 2. Fixed height for Description to make it internally scrollable
                   SizedBox(
                     height: 120,
                     child: TextField(
                       controller: descController,
                       scrollController: descScrollController,
                       maxLines: null,
-                      expands: true, // Fills the 120px height
+                      expands: true, 
                       textAlignVertical: TextAlignVertical.top,
                       decoration: InputDecoration(
                         labelText: "Description",
-                        alignLabelWithHint: true, // Keeps label at the top
+                        alignLabelWithHint: true,  
                         filled: true,
                       fillColor: primary.withValues(alpha: .8),
                         border: OutlineInputBorder(
@@ -303,13 +319,15 @@ class CardWidgets {
                 padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
               ),
               onPressed: () {
-                ref.read(kanbanProvider(board).notifier).addTask(
-                  column.id,
-                  titleController.text,
-                  descController.text,
-                  selectedDate?.toIso8601String(),
-                );
-                Navigator.pop(ctx);
+                if(titleController.text.trim().isNotEmpty){
+                  ref.read(kanbanProvider(board).notifier).addTask(
+                    column.id,
+                    titleController.text,
+                    descController.text,
+                    selectedDate?.toIso8601String(),
+                  );
+                  Navigator.pop(ctx);
+                }
               },
               child: const Text("Add"),
             ),

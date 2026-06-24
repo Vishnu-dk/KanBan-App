@@ -1,6 +1,7 @@
 
 
 import 'dart:async';
+import 'package:frontend/providers/dashboard_provider.dart';
 import 'package:frontend/services/auth_service.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
@@ -8,7 +9,7 @@ import 'package:jwt_decoder/jwt_decoder.dart';
 part 'auth_provider.g.dart';
 
 @riverpod
-class Obsure extends _$Obsure{
+class Obsure extends _$Obsure{  //here this is to make the eye in the passoword shown or not shown
   @override
   bool build()=>true;
   void onToggle()=> state=!state;
@@ -17,27 +18,27 @@ class Obsure extends _$Obsure{
 
 
 @riverpod
-class AuthError extends _$AuthError {
-  Timer? _timer;
+class AuthError extends _$AuthError {   //it is output  show the error in the textfield
+  Timer? _timer;  //variable that hold the timer
 
   @override
-  String? build() {
+  String? build() {    //ensure the time is disposed to prevent memory leak
     ref.onDispose(() => _timer?.cancel());
     return null;
   }
 
-  void setError(String? message) {
+  void setError(String? message) {    //sets an error messsage
     state = message;
-    _timer?.cancel();
+    _timer?.cancel();         //cancel any timer before new is created
 
     if (message != null && message.isNotEmpty) {
       _timer = Timer(const Duration(seconds: 2), () {
-        state = null;
+        state = null;          //clear timer after 2 seconds
       });
     }
   }
 
-  void clear() {
+  void clear() {           //clear error message and cancel timer
     _timer?.cancel();
     state = null;
   }
@@ -45,7 +46,7 @@ class AuthError extends _$AuthError {
 
 
 @riverpod
-class Selection extends _$Selection{
+class Selection extends _$Selection{  //this is for the authpage that it has login and signup in a single page to switch that
 
   @override
   
@@ -54,21 +55,21 @@ class Selection extends _$Selection{
 }
 
 @riverpod
-class Auth extends _$Auth {
+class Auth extends _$Auth {    // to auto logout and check if th etocken is expired
   @override
   Future<bool> build() async {
-    final token = await AuthService().getToken();
+    final token = await AuthService().getToken();  //get the tocken value
 
-    if (token != null && token.isNotEmpty) {
+    if (token != null && token.isNotEmpty) {   //check if it is none
 
-      if (JwtDecoder.isExpired(token)) {
+      if (JwtDecoder.isExpired(token)) {    //if tocken is expire checked using jwtdecoder return false
         return false; 
       }
-      final timer = Timer.periodic(const Duration(seconds: 2), (t) async {
+      final timer = Timer.periodic(const Duration(minutes: 1), (t) async {   //timer to check or fetch the api from back end to know if the tocken is expired
         final currentToken = await AuthService().getToken();
         if (currentToken == null || JwtDecoder.isExpired(currentToken)) {
-          t.cancel();
-          logout(); 
+          t.cancel();                //timer cancell
+          logout();                   //logout that is delete the tocken from the secure storage
         }
       });
 
@@ -80,7 +81,9 @@ class Auth extends _$Auth {
   }
 
   Future<void> logout() async {
-    await AuthService().logout();
-    state = const AsyncValue.data(false);
+
+    await AuthService().logout();         //call logout function
+    state = const AsyncData(false);
+      ref.invalidate(dashboardProvider);
   }
 }

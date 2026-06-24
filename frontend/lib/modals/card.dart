@@ -15,7 +15,7 @@ class KanbanCard {
     required this.columnId,
   });
 
-  factory KanbanCard.fromJson(Map<String, dynamic> json) {
+  factory KanbanCard.fromJson(Map<String, dynamic> json) {  ///creating/modify instance of a card from the data fetch from the data base
     return KanbanCard(
       id: json['id'].toString(),
       title: json['title'] ?? "",

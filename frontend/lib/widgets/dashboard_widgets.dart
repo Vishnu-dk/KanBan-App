@@ -17,6 +17,7 @@ class DashboardWidgets {
       onTap: () async {
       await Navigator.push(context,MaterialPageRoute(builder: (context) => KanbanView(board: board,)),);
       ref.read(dashboardProvider.notifier).fetchBoards();
+        ref.invalidate(dashboardProvider); 
       },
       borderRadius: BorderRadius.circular(15),
       child: Card(
@@ -55,7 +56,7 @@ class DashboardWidgets {
                                                                       type: "board",
                                                                       onConfirm: (id) => ref.read(dashboardProvider.notifier).deleteBoard(id),
                                                                       ),
-                    icon: const Icon(Icons.delete_forever_rounded, color: Color.fromARGB(255, 151, 0, 0))
+                    icon: const Icon(Icons.delete_outline_sharp, color: Color.fromARGB(255, 151, 0, 0))
                   )
                 ],
               ),
@@ -69,16 +70,33 @@ class DashboardWidgets {
                 spacing: 6,
                 runSpacing: 6,
                 children: [
-                  ...display.map((c) => _buildModernTag(c.name)),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
+                        children: [
+                          ...display.map((c) => _buildModernTag(c.name)),
+                        ],
+                      ),
+
                   if (extra > 0) _buildModernTag("+ $extra", isExtra: true),
+                    ],
+                  )
+
                 ],
               ),
-              Padding(
-                padding: EdgeInsetsGeometry.symmetric(vertical: 2,horizontal: 10),
-                child: Text("created at : ${board.createdAt}",style: const TextStyle( fontSize: 12,color: deepForest,letterSpacing: 0.5,),
-                )
-              
-              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  Padding(
+
+                    padding: EdgeInsetsGeometry.symmetric(vertical: 4),
+                    child: Text("Created At : ${board.createdAt}", style:  TextStyle( fontSize: 10,color: deepForest.withValues(alpha: 0.7),letterSpacing: 0.5),
+                    )
+
+                  ),
+                ],
+              )
             ],
           ),
         ),

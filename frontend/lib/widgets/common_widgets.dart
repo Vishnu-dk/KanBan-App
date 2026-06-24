@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:frontend/main.dart';
 
 class CommonWidgets {
@@ -74,9 +75,16 @@ class CommonWidgets {
             ),
             const SizedBox(height: 16),
             TextField(
+
               controller: controller,
               autofocus: true,
+              inputFormatters: [
+                FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z_0-9 ]')),
+                FilteringTextInputFormatter.deny(RegExp(r'^\s+'), ),
+              ],
+              
               decoration: InputDecoration(
+                
                 filled: true,
                 fillColor: Colors.white,
                 border: OutlineInputBorder(
@@ -101,7 +109,12 @@ class CommonWidgets {
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
           ),
-            onPressed: () { onConfirm(controller.text); Navigator.pop(ctx); }, 
+            onPressed: () { 
+              if(controller.text.trim().isNotEmpty){
+              onConfirm(controller.text); Navigator.pop(ctx); 
+
+              }
+              }, 
             child:  Text(btn),
           ),
         ],

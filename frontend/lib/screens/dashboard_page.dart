@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:frontend/main.dart';
 import 'package:frontend/providers/auth_provider.dart';
 import 'package:frontend/providers/dashboard_provider.dart';
+import 'package:frontend/screens/profile_page.dart';
 import 'package:frontend/widgets/common_widgets.dart';
 import 'package:frontend/widgets/dashboard_widgets.dart';
 
@@ -11,6 +12,7 @@ class DashboardPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    
     final boardsAsync = ref.watch(dashboardProvider);
 
     return Scaffold(
@@ -34,7 +36,9 @@ class DashboardPage extends ConsumerWidget {
 
             onSelected: (value) async { 
               if (value == 'logout') {
-                await ref.read(authProvider.notifier).logout(); 
+                await ref.read(authProvider.notifier).logout();               }
+              else if(value=='profile'){
+                Navigator.push(context,MaterialPageRoute(builder: (context) => ProfilePage()));
               }
             },
 
@@ -117,18 +121,26 @@ class DashboardPage extends ConsumerWidget {
                     if (errorMessage.contains("404") || errorMessage.contains("Not Found")) {
                       return const Center(child: Text("No boards found. Create one!"));
                     }
-                    if (boardsAsync.hasValue) {
-                      return DashboardWidgets().buildBoardsGrid(boardsAsync.value!,ref);
-                    }
+                    
+if (boardsAsync.hasValue) {
+  final myBoards = boardsAsync.value!.boards;
+  return DashboardWidgets().buildBoardsGrid(myBoards, ref);
+}
+
 
                     return Center(child: Text(errorMessage));
                   },
-                  data: (myBoards) {
-                    if (myBoards.isEmpty) {
-                      return const Center(child: Text("No boards found. Create one!"));
-                    }
-                    return  DashboardWidgets().buildBoardsGrid(myBoards,ref);
-                  },
+                  
+data: (dashboard) {
+  final myBoards = dashboard.boards;
+
+  if (myBoards.isEmpty) {
+    return const Center(child: Text("No boards found. Create one!"));
+  }
+
+  return DashboardWidgets().buildBoardsGrid(myBoards, ref);
+}
+
                 ),
               ),
             ],

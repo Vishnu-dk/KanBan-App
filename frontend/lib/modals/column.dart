@@ -1,4 +1,5 @@
 
+import 'package:frontend/modals/board.dart';
 import 'package:frontend/modals/card.dart';
 
 class KanbanColumn {
@@ -14,12 +15,22 @@ class KanbanColumn {
     this.tasks = const [],
   });
  
-factory KanbanColumn.fromJson(Map<String, dynamic> json, [List<KanbanCard> cards = const []]) {
+factory KanbanColumn.fromJson(Map<String, dynamic> json, [List<KanbanCard> cards = const []]) { //here the dependency allows a list of card objects to get injected to the column
   return KanbanColumn(
     id: json['id'].toString(),
     name: json['title'] ?? "",
     position: (json['position']  ?? 0) as int, 
-    tasks: cards, 
+    tasks: cards,       //assigned here
   );
 }
+}
+
+class DashboardState {
+  final String user;
+  final List<Board> boards;
+
+  DashboardState({
+    required this.user,
+    required this.boards,
+  });
 }

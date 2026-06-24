@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'package:frontend/services/auth_service.dart';
 import 'package:http/http.dart' as http;
 
-
 class CardService {
 
   Future<void> addCard(String columnId, String title, String? description, String? dueDate) async {

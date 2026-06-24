@@ -9,33 +9,37 @@ part 'kanbanprovider.g.dart';
 
 @riverpod
 class Kanban extends _$Kanban {
+  // create th einstance of ths servvices 
   final _colService = ColumnService();
   final _cardService = CardService();
 
 
   @override
-  Future<Board> build(Board initialBoard) async {
+  Future<Board> build(Board initialBoard) async {  //initailaize the state and takes the initail board param and return its details
       return _fetchBoardData(initialBoard);
   }
 
-  Future<Board> _fetchBoardData(Board currentBoard) async {
+  Future<Board> _fetchBoardData(Board currentBoard) async {  //to fetch column for a board and cards for each column
     final List<dynamic> columnData = await _colService.getColumns(currentBoard.id);
     List<KanbanColumn> fullColumns = [];
 
-    for (var colJson in columnData) {
+    for (var colJson in columnData) {   //loop through each column to fetch card belonging to it
       final String colId = colJson['id'].toString();
       final List<dynamic> cardData = await _cardService.getCards(colId);
       List<KanbanCard> cards = cardData.map((c) => KanbanCard.fromJson(c)).toList();
       fullColumns.add(KanbanColumn.fromJson(colJson, cards));
     }
 
-    fullColumns.sort((a, b) => a.position.compareTo(b.position));
+    fullColumns.sort((a, b) => a.position.compareTo(b.position));  //sort column based on there position index to make in order
     return currentBoard.copyWith(columnNames: fullColumns);
   }
 
-  Future<Board> refreshBoard() async {
+  Future<Board> refreshBoard() async {      //reload board data from the server
     return await _fetchBoardData(initialBoard);
   }
+
+
+//column add update move delete
 
   Future<void> addColumn(String name) async {
     state = await AsyncValue.guard(() async {
@@ -59,12 +63,14 @@ class Kanban extends _$Kanban {
   }
   Future<void> moveColumn(KanbanColumn column, int newPosition) async {
   state = await AsyncValue.guard(() async {
-    // Call your service to update the position index
     await _colService.updateColumn(column.id, position: newPosition);
     return await refreshBoard();
   });
 }
 
+
+
+//task add update move delete
 
   Future<void> addTask(String columnId, String title, String? description, String? dueDate) async {
     state = await AsyncValue.guard(() async {

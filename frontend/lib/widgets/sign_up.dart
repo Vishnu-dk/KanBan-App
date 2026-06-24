@@ -24,6 +24,7 @@ class _SignUpState extends ConsumerState<SignUp> {
 
 
     void handleSignUp()async{
+      
       String success=await AuthService().signUp(emailController.text,passwordController.text);
       if(success=="User Created"){
         ScaffoldMessenger.of(context).removeCurrentSnackBar();

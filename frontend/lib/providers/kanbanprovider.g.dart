@@ -49,7 +49,7 @@ final class KanbanProvider extends $AsyncNotifierProvider<Kanban, Board> {
   }
 }
 
-String _$kanbanHash() => r'8d85ec2714d1e28cc9095552759779a111f68506';
+String _$kanbanHash() => r'd73b3967ba837bcfbbe5049dc9c6356fd118b97a';
 
 final class KanbanFamily extends $Family
     with

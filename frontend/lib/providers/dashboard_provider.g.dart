@@ -13,7 +13,7 @@ part of 'dashboard_provider.dart';
 final dashboardProvider = DashboardProvider._();
 
 final class DashboardProvider
-    extends $AsyncNotifierProvider<Dashboard, List<Board>> {
+    extends $AsyncNotifierProvider<Dashboard, DashboardState> {
   DashboardProvider._()
     : super(
         from: null,
@@ -33,19 +33,19 @@ final class DashboardProvider
   Dashboard create() => Dashboard();
 }
 
-String _$dashboardHash() => r'd1101472c0bd9a76e9b7dfe7870ff9184dc817d4';
+String _$dashboardHash() => r'80dcfc7caccc7624e7fce34e4352d698b83530bc';
 
-abstract class _$Dashboard extends $AsyncNotifier<List<Board>> {
-  FutureOr<List<Board>> build();
+abstract class _$Dashboard extends $AsyncNotifier<DashboardState> {
+  FutureOr<DashboardState> build();
   @$mustCallSuper
   @override
   void runBuild() {
-    final ref = this.ref as $Ref<AsyncValue<List<Board>>, List<Board>>;
+    final ref = this.ref as $Ref<AsyncValue<DashboardState>, DashboardState>;
     final element =
         ref.element
             as $ClassProviderElement<
-              AnyNotifier<AsyncValue<List<Board>>, List<Board>>,
-              AsyncValue<List<Board>>,
+              AnyNotifier<AsyncValue<DashboardState>, DashboardState>,
+              AsyncValue<DashboardState>,
               Object?,
               Object?
             >;
